@@ -1,1 +1,278 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Квест: Национальный центр Россия</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+        body { font-family: system-ui, -apple-system, sans-serif; background-color: #f3f4f6; }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
 
+    <div class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md border border-gray-100">
+        <div class="text-center mb-6">
+            <h1 class="text-xl font-bold text-red-600">Национальный центр «Россия»</h1>
+            <p class="text-xs text-gray-500 font-medium tracking-wide uppercase mt-1">Красноярский край</p>
+        </div>
+
+        <div id="incognito-warning" class="hidden bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4 rounded">
+            <p class="text-sm text-yellow-700 font-bold">⚠️ Внимание! Не используйте приватный режим (инкогнито), иначе ваш прогресс в квесте сотрется при закрытии вкладки!</p>
+        </div>
+
+        <div id="screen-error" class="hidden text-center py-6">
+            <div class="text-5xl mb-4">🛑</div>
+            <h2 class="text-lg font-bold text-gray-800 mb-2">Ой, кажется ты поспешил!</h2>
+            <p id="error-message" class="text-gray-600 text-sm mb-6">Ты пропустил предыдущие локации. Вернись назад и найди нужный QR-код!</p>
+        </div>
+
+        <div id="screen-welcome" class="hidden text-center py-4">
+            <p class="text-gray-700 font-medium mb-6">Здравствуй, дорогой друг! Рады приветствовать тебя в Национальном центре «Россия» в Красноярском крае! Отвечай правильно на вопросы, разгадывай загадки и проходи весь путь! В конце тебя ждет ПРИЗ!</p>
+            <button onclick="startQuest()" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-xl transition shadow-lg">НАЧАТЬ КВЕСТ</button>
+        </div>
+
+        <div id="screen-question" class="hidden">
+            <div class="mb-4 flex justify-between items-center bg-gray-50 px-3 py-2 rounded-lg text-xs font-semibold text-gray-600">
+                <span id="quest-id-display">ID: ---</span>
+                <span id="step-counter" class="bg-red-100 text-red-700 px-2 py-0.5 rounded-full">Шаг 1/9</span>
+            </div>
+            
+            <h2 id="question-text" class="text-lg font-bold text-gray-800 mb-4">Текст вопроса?</h2>
+            <div id="options-container" class="space-y-3 mb-6">
+                </div>
+            <p id="wrong-answer-msg" class="text-red-500 font-semibold text-sm text-center hidden mb-4">❌ Неправильно! Попробуй еще раз.</p>
+        </div>
+
+        <div id="screen-hint" class="hidden text-center py-4">
+            <div class="text-4xl mb-3">🎉 Отлично! Ответ верный!</div>
+            <p class="text-sm text-gray-500 font-semibold mb-2 uppercase tracking-wider">Твоя следующая подсказка:</p>
+            <div class="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-6 text-gray-800 font-medium italic whitespace-pre-line text-left" id="hint-text">
+                Текст загадки...
+            </div>
+            <p class="text-xs text-gray-400">Найди локацию, отгадав загадку, и отсканируй там следующий QR-код!</p>
+        </div>
+
+        <div id="screen-final" class="hidden text-center py-4">
+            <div class="text-5xl mb-4">🏆</div>
+            <h2 class="text-2xl font-black text-green-600 mb-2">ПОЗДРАВЛЯЕМ!</h2>
+            <p class="text-gray-700 font-medium mb-6">Ты успешно завершил квест! Сохрани этот экран и покажи администратору на стойке в начале своего маршрута! Тебя ждет заслуженный подарок!</p>
+            
+            <div class="bg-gray-900 text-white rounded-xl p-6 shadow-inner mb-6">
+                <p class="text-xs text-gray-400 uppercase tracking-widest font-bold mb-1">Уникальный номер участника</p>
+                <p id="final-uid" class="text-3xl font-mono font-black text-yellow-400 tracking-wider">---</p>
+                <hr class="border-gray-800 my-3">
+                <p class="text-xs text-gray-400 uppercase tracking-widest font-bold mb-1">Время прохождения (живое)</p>
+                <p id="live-clock" class="text-xl font-mono font-bold text-green-400">00:00:00</p>
+            </div>
+            <p class="text-xs text-red-500 font-bold">⚠️ Внимание администратора: скриншоты не принимаются, часы должны идти в реальном времени!</p>
+        </div>
+    </div>
+
+    <script>
+        // БАЗА ДАННЫХ КВЕСТА ИЗ СЦЕНАРИЯ
+        const questData = {
+            "welcome": {
+                step: 1,
+                question: "Деревянные подружки\nЛюбят прятаться друг в дружке,\nНосят яркие одёжки,\nНазываются...",
+                options: ["Ладошки", "Сережки", "Матрешки"],
+                answer: "Матрешки",
+                hint: "Найди самую маленькую матрешку в зоне «О России»"
+            },
+            "ru_zone": {
+                step: 2,
+                question: "Сколько субъектов РФ входит в состав Сибирского федерального округа (СФО)?",
+                options: ["8", "11", "10"],
+                answer: "10",
+                hint: "Перед тем, как в зал идти,\nТуда одежду отнеси.\nНомерком тебя снабдят,\nВещи бережно хранят."
+            },
+            "wardrobe": {
+                step: 3,
+                question: "Где находится географический центр России?",
+                options: ["озеро Виви", "озеро Байкал", "озеро Кета"],
+                answer: "озеро Виви",
+                hint: "Не тренажёрный зал, но «пресс» тут есть,\nНовости, интервью вот их весь интерес.\nГде всё это вместе, подскажи-ка мне,\nКак зовется точка в медиа-суете?"
+            },
+            "press": {
+                step: 4,
+                question: "В каком году был основан Красноярский острог?",
+                options: ["1628", "1636", "1618"],
+                answer: "1628",
+                hint: "Не стадион, не театр, не кино,\nНо людей тут бывает полно.\nЗаседают, выступают, решения принимают,\nКак такое место в наццентре называют?"
+            },
+            "multihall": {
+                step: 5,
+                question: "Какой знаменитый русский художник родился в Красноярске?",
+                options: ["Иван Шишкин", "Василий Суриков", "Виктор Васнецов"],
+                answer: "Василий Суриков",
+                hint: "Просторный, красивый, со сценой большой,\nСюда приезжают артист и герой.\nКонцерты, встречи, трансляции идут,\nАплодисменты зрителей каждого ждут."
+            },
+            "concert": {
+                step: 6,
+                question: "Какой оперный певец стал известен благодаря победе на международном конкурсе «Певец мира» в 1989 году?",
+                options: ["Анна Нетребко", "Дмитрий Хворостовский", "Федор Шаляпин"],
+                answer: "Дмитрий Хворостовский",
+                hint: "Где можно сесть, помолчать, помечтать,\nНа волны Енисея без спешки взирать?\nСтупени ведут не на сцену, а ввысь,\nМесто покоя где просто «садись!»."
+            },
+            "amphi": {
+                step: 7,
+                question: "В какое море впадает Енисей?",
+                options: ["Карское море", "море Лаптевых", "Чукотское море"],
+                answer: "Карское море",
+                hint: "Здесь кружева вологодские нежно лежат,\nХрустальный блеск на полках в ряд.\nЯнтарь тёплый, солнечный в витрине горит,\nВсё - родное, российское — сердце говорит.\n\nУнивермаг - это место зовется,\nА QR-код у продавца найдется."
+            },
+            "shop": {
+                step: 8,
+                question: "Какой город края крупнейший центр цветной металлургии (никель, медь)?",
+                options: ["Норильск", "Медногорск", "Каменск-Уральский"],
+                answer: "Норильск",
+                hint: "Не за морем, не в далёких краях,\nА здесь, в Сибири, вкус словно в стихах.\nСтроганина - как морозный рассвет,\nШаньги с картошкой - на много лет.\nГде традиции кухни в каждом блюде живут,\nГости сыты, счастливы в сердце тепло тут.\n\nТы на кассу подойди, Последний QR-код получи."
+            },
+            "gastro": {
+                step: 9,
+                question: "Как называется крупнейшая ГЭС России, расположенная на Енисее?",
+                options: ["Саяно-Шушенская ГЭС", "Братская ГЭС", "Красноярская ГЭС"],
+                answer: "Саяно-Шушенская ГЭС",
+                hint: "финал"
+            }
+        };
+
+        // Логика работы квеста
+        const urlParams = new URLSearchParams(window.location.search);
+        const currentLoc = urlParams.get('loc'); // Получаем токен локации из QR-кода
+
+        // Инициализация состояний в LocalStorage
+        let userStep = parseInt(localStorage.getItem('quest_step')) || 0;
+        let userUID = localStorage.getItem('quest_uid') || "";
+
+        // Проверка режима инкогнито
+        try {
+            localStorage.setItem('test', '1');
+            localStorage.removeItem('test');
+        } catch (e) {
+            document.getElementById('incognito-warning').classList.remove('hidden');
+        }
+
+        function hideAllScreens() {
+            ['screen-error', 'screen-welcome', 'screen-question', 'screen-hint', 'screen-final'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+        }
+
+        // Главный контроллер распределения экранов
+        function initQuest() {
+            // Если перешли без параметров локации
+            if (!currentLoc || !questData[currentLoc]) {
+                if (userStep === 0) {
+                    showError("Сканируй самый первый QR-код на стойке администратора, чтобы начать квест!");
+                } else if (userStep > 9) {
+                    showFinalScreen();
+                } else {
+                    // Ищем токен по текущему шагу пользователя, чтобы вернуть его на место прерывания
+                    const token = Object.keys(questData).find(key => questData[key].step === userStep);
+                    showHintScreen(questData[token].hint);
+                }
+                return;
+            }
+
+            const targetData = questData[currentLoc];
+
+            // ЗАЩИТА ОТ ЧИТЕРСТВА: проверка последовательности шагов
+            if (targetData.step === 1 && userStep === 0) {
+                // Первая локация, квест еще не начат
+                hideAllScreens();
+                document.getElementById('screen-welcome').classList.remove('hidden');
+            } else if (targetData.step > userStep + 1) {
+                // Ребенок перепрыгнул через шаги
+                showError("Кажется, ты пропустил какую-то локацию! Вернись назад и разгадай предыдущую загадку.");
+            } else if (targetData.step <= userStep) {
+                // Если этот шаг уже был успешно решен ранее
+                if (targetData.step === 9 || userStep >= 9) {
+                    showFinalScreen();
+                } else {
+                    showHintScreen(targetData.hint);
+                }
+            } else if (targetData.step === userStep + 1) {
+                // Идеально: текущий правильный шаг квеста
+                showQuestionScreen(currentLoc);
+            }
+        }
+
+        function startQuest() {
+            userStep = 1;
+            // Генерация уникального ID участника (Например: RC-5421)
+            userUID = "RC-" + Math.floor(1000 + Math.random() * 9000);
+            localStorage.setItem('quest_step', userStep);
+            localStorage.setItem('quest_uid', userUID);
+            showQuestionScreen("welcome");
+        }
+
+        function showQuestionScreen(locKey) {
+            hideAllScreens();
+            const data = questData[locKey];
+            
+            document.getElementById('quest-id-display').innerText = "ID: " + userUID;
+            document.getElementById('step-counter').innerText = `Шаг ${data.step}/9`;
+            document.getElementById('question-text').innerText = data.question;
+            document.getElementById('wrong-answer-msg').classList.add('hidden');
+
+            const container = document.getElementById('options-container');
+            container.innerHTML = "";
+
+            data.options.forEach(option => {
+                const btn = document.createElement('button');
+                btn.className = "w-full text-left bg-gray-50 hover:bg-red-50 border border-gray-200 hover:border-red-300 text-gray-800 font-medium py-3 px-4 rounded-xl transition duration-150";
+                btn.innerText = option;
+                btn.onclick = () => checkAnswer(option, data.answer, data.hint);
+                container.appendChild(btn);
+            });
+
+            document.getElementById('screen-question').classList.remove('hidden');
+        }
+
+        function checkAnswer(selected, correct, hintText) {
+            if (selected === correct) {
+                // Ответ верный. Перезаписываем шаг в памяти смартфона
+                const currentData = questData[currentLoc || "welcome"];
+                userStep = currentData.step;
+                localStorage.setItem('quest_step', userStep);
+
+                if (userStep === 9) {
+                    showFinalScreen();
+                } else {
+                    showHintScreen(hintText);
+                }
+            } else {
+                document.getElementById('wrong-answer-msg').classList.remove('hidden');
+            }
+        }
+
+        function showHintScreen(hintText) {
+            hideAllScreens();
+            document.getElementById('hint-text').innerText = hintText;
+            document.getElementById('screen-hint').classList.remove('hidden');
+        }
+
+        function showFinalScreen() {
+            hideAllScreens();
+            document.getElementById('final-uid').innerText = userUID || localStorage.getItem('quest_uid');
+            document.getElementById('screen-final').classList.remove('hidden');
+            
+            // Запуск живых часов против обмана со скриншотами
+            setInterval(() => {
+                const now = new Date();
+                document.getElementById('live-clock').innerText = now.toLocaleTimeString('ru-RU');
+            }, 1000);
+        }
+
+        function showError(msg) {
+            hideAllScreens();
+            document.getElementById('error-message').innerText = msg;
+            document.getElementById('screen-error').classList.remove('hidden');
+        }
+
+        // Запуск при загрузке страницы
+        initQuest();
+    </script>
+</body>
+</html>
