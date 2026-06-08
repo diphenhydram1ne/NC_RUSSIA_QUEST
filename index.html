@@ -6,71 +6,125 @@
     <title>Квест: Национальный центр Россия</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
-        body { font-family: system-ui, -apple-system, sans-serif; background-color: #f3f4f6; }
+        /* Точные цвета из фирменной заставки */
+        .bg-brand-gradient {
+            background: linear-gradient(180deg, #0d3168 0%, #225691 50%, #2e6db3 100%);
+        }
+        /* Стилизация шрифтов под макет */
+        .font-brand-title {
+            font-family: 'Montserrat', system-ui, -apple-system, sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        /* Векторный силуэт города на фоне (адаптивный) */
+        .city-silhouette {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 140px;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 140" fill="%23071d3d" opacity="0.4"><path d="M0,140 L1440,140 L1440,80 L1410,80 L1410,40 L1390,40 L1390,80 L1320,80 L1300,10 L1280,80 L1200,80 L1190,50 L1160,50 L1150,80 L1020,80 L1000,20 L980,20 L970,0 L960,20 L940,20 L920,80 L760,80 L750,30 L720,30 L710,80 L590,80 L580,15 L560,15 L555,5 L550,15 L530,15 L520,80 L430,80 L410,40 L390,80 L290,80 L280,35 L250,35 L240,80 L120,80 L100,60 L80,60 L70,80 L0,80 Z"/></svg>');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: bottom center;
+            pointer-events: none;
+            z-index: 1;
+        }
+        .content-wrapper {
+            position: relative;
+            z-index: 10;
+        }
     </style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-4">
+<body class="bg-brand-gradient min-h-screen flex flex-col justify-between p-4 font-brand-title text-white">
 
-    <div class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md border border-gray-100">
-        <div class="text-center mb-6">
-            <h1 class="text-xl font-bold text-red-600">Национальный центр «Россия»</h1>
-            <p class="text-xs text-gray-500 font-medium tracking-wide uppercase mt-1">Красноярский край</p>
+    <!-- Силуэт города на заднем плане -->
+    <div class="city-silhouette"></div>
+
+    <div class="content-wrapper w-full max-w-md mx-auto my-auto flex flex-col items-center">
+        
+        <!-- Главный брендинг сверху (копия заставки) -->
+        <div class="text-center mb-6 select-none">
+            <div class="text-xs md:text-sm font-medium tracking-widest text-blue-200 opacity-90">НАЦИОНАЛЬНЫЙ ЦЕНТР</div>
+            <div class="text-4xl md:text-5xl font-black tracking-tight my-1 drop-shadow-md">РОССИЯ</div>
+            <div class="text-xs md:text-sm font-bold tracking-widest text-blue-100 border-t border-blue-400/30 pt-1 mt-1">КРАСНОЯРСКИЙ КРАЙ</div>
         </div>
 
-        <div id="incognito-warning" class="hidden bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4 rounded">
-            <p class="text-sm text-yellow-700 font-bold">⚠️ Внимание! Не используйте приватный режим (инкогнито), иначе ваш прогресс в квесте сотрется при закрытии вкладки!</p>
-        </div>
-
-        <div id="screen-error" class="hidden text-center py-6">
-            <div class="text-5xl mb-4">🛑</div>
-            <h2 class="text-lg font-bold text-gray-800 mb-2">Ой, кажется ты поспешил!</h2>
-            <p id="error-message" class="text-gray-600 text-sm mb-6">Ты пропустил предыдущие локации. Вернись назад и найди нужный QR-код!</p>
-        </div>
-
-        <div id="screen-welcome" class="hidden text-center py-4">
-            <p class="text-gray-700 font-medium mb-6">Здравствуй, дорогой друг! Рады приветствовать тебя в Национальном центре «Россия» в Красноярском крае! Отвечай правильно на вопросы, разгадывай загадки и проходи весь путь! В конце тебя ждет ПРИЗ!</p>
-            <button onclick="startQuest()" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-xl transition shadow-lg">НАЧАТЬ КВЕСТ</button>
-        </div>
-
-        <div id="screen-question" class="hidden">
-            <div class="mb-4 flex justify-between items-center bg-gray-50 px-3 py-2 rounded-lg text-xs font-semibold text-gray-600">
-                <span id="quest-id-display">ID: ---</span>
-                <span id="step-counter" class="bg-red-100 text-red-700 px-2 py-0.5 rounded-full">Шаг 1/9</span>
-            </div>
+        <!-- Основная карточка квеста -->
+        <div class="bg-white text-gray-900 rounded-lg shadow-2xl p-6 w-full border-t-4 border-red-600">
             
-            <h2 id="question-text" class="text-lg font-bold text-gray-800 mb-4">Текст вопроса?</h2>
-            <div id="options-container" class="space-y-3 mb-6">
+            <!-- Предупреждение об инкогнито -->
+            <div id="incognito-warning" class="hidden bg-amber-50 border-l-4 border-amber-500 p-3 mb-4 rounded text-xs text-amber-900 normal-case">
+                <strong>⚠️ Внимание!</strong> Выключите режим инкогнито, иначе прогресс квеста сотрется при закрытии браузера.
+            </div>
+
+            <!-- Экран Ошибки (Читерство) -->
+            <div id="screen-error" class="hidden text-center py-4 normal-case">
+                <div class="text-red-600 text-4xl font-bold mb-2">ДОСТУП ОГРАНИЧЕН</div>
+                <p id="error-message" class="text-gray-600 text-sm font-medium">Вы пропустили предыдущие локации квеста. Пожалуйста, двигайтесь строго по порядку шагов!</p>
+            </div>
+
+            <!-- Экран Приветствия (Шаг 1) -->
+            <div id="screen-welcome" class="hidden text-center py-2 normal-case">
+                <p class="text-gray-700 text-base font-medium leading-relaxed mb-6">
+                    Рады приветствовать тебя в Национальном центре «Россия»! Отвечай на вопросы, разгадывай загадки и проходи весь путь! В конце тебя ждет заслуженный ПРИЗ!
+                </p>
+                <button onclick="startQuest()" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3.5 px-6 rounded-lg transition duration-150 shadow-lg tracking-wider font-brand-title text-sm">
+                    НАЧАТЬ КВЕСТ
+                </button>
+            </div>
+
+            <!-- Экран Вопроса -->
+            <div id="screen-question" class="hidden normal-case">
+                <div class="mb-4 flex justify-between items-center bg-gray-100 px-3 py-2 rounded text-xs font-bold tracking-wider text-gray-500">
+                    <span id="quest-id-display">ID: ---</span>
+                    <span id="step-counter" class="bg-red-600 text-white px-2 py-0.5 rounded">ШАГ 1/9</span>
                 </div>
-            <p id="wrong-answer-msg" class="text-red-500 font-semibold text-sm text-center hidden mb-4">❌ Неправильно! Попробуй еще раз.</p>
+                
+                <h2 id="question-text" class="text-base font-bold text-gray-900 mb-5 leading-snug whitespace-pre-line">Текст вопроса?</h2>
+                <div id="options-container" class="space-y-2.5 mb-4">
+                    <!-- Кнопки вариантов -->
+                </div>
+                <p id="wrong-answer-msg" class="text-red-600 font-bold text-xs text-center hidden">❌ Неправильный ответ. Попробуй еще раз!</p>
+            </div>
+
+            <!-- Экран Успеха / Загадки-подсказки -->
+            <div id="screen-hint" class="hidden normal-case">
+                <div class="text-center mb-4">
+                    <div class="inline-block bg-emerald-100 text-emerald-800 font-bold text-xs px-3 py-1 rounded-full tracking-wider uppercase">Верно! Шаг пройден</div>
+                </div>
+                <p class="text-xs text-gray-400 font-bold tracking-widest text-center uppercase mb-2">Следующая точка маршрута:</p>
+                <div class="bg-slate-50 border border-slate-200 rounded-lg p-4 mb-4 text-gray-800 font-medium italic whitespace-pre-line text-sm bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] [background-size:16px_16px]" id="hint-text">
+                    Текст загадки...
+                </div>
+                <p class="text-[11px] text-gray-400 text-center font-medium">Отгадай загадку, найди место и отсканируй там следующий QR-код.</p>
+            </div>
+
+            <!-- Экран Финала -->
+            <div id="screen-final" class="hidden text-center py-2">
+                <div class="text-emerald-600 text-4xl font-black tracking-tight mb-2">КВЕСТ ЗАВЕРШЕН!</div>
+                <p class="text-gray-600 text-xs font-medium normal-case mb-5">Ты успешно прошел все точки маршрута. Покажи этот экран администратору на стойке регистрации для получения подарка!</p>
+                
+                <div class="bg-[#071d3d] text-white rounded-lg p-5 shadow-inner mb-2 text-center">
+                    <p class="text-[10px] text-blue-300 tracking-widest font-bold mb-1">УНИКАЛЬНЫЙ КОД ПРОВЕРКИ</p>
+                    <p id="final-uid" class="text-3xl font-mono font-black text-yellow-400 tracking-widest">---</p>
+                    <div class="border-t border-blue-900/60 my-3"></div>
+                    <p class="text-[10px] text-blue-300 tracking-widest font-bold mb-1">ТЕКУЩЕЕ ВРЕМЯ (ЖИВОЙ ПОТОК)</p>
+                    <p id="live-clock" class="text-xl font-mono font-bold text-emerald-400 tracking-wider">00:00:00</p>
+                </div>
+                <p class="text-[10px] text-red-500 font-bold uppercase tracking-wider">Скриншоты не принимаются. Время должно идти.</p>
+            </div>
+
         </div>
 
-        <div id="screen-hint" class="hidden text-center py-4">
-            <div class="text-4xl mb-3">🎉 Отлично! Ответ верный!</div>
-            <p class="text-sm text-gray-500 font-semibold mb-2 uppercase tracking-wider">Твоя следующая подсказка:</p>
-            <div class="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-6 text-gray-800 font-medium italic whitespace-pre-line text-left" id="hint-text">
-                Текст загадки...
-            </div>
-            <p class="text-xs text-gray-400">Найди локацию, отгадав загадку, и отсканируй там следующий QR-код!</p>
-        </div>
-
-        <div id="screen-final" class="hidden text-center py-4">
-            <div class="text-5xl mb-4">🏆</div>
-            <h2 class="text-2xl font-black text-green-600 mb-2">ПОЗДРАВЛЯЕМ!</h2>
-            <p class="text-gray-700 font-medium mb-6">Ты успешно завершил квест! Сохрани этот экран и покажи администратору на стойке в начале своего маршрута! Тебя ждет заслуженный подарок!</p>
-            
-            <div class="bg-gray-900 text-white rounded-xl p-6 shadow-inner mb-6">
-                <p class="text-xs text-gray-400 uppercase tracking-widest font-bold mb-1">Уникальный номер участника</p>
-                <p id="final-uid" class="text-3xl font-mono font-black text-yellow-400 tracking-wider">---</p>
-                <hr class="border-gray-800 my-3">
-                <p class="text-xs text-gray-400 uppercase tracking-widest font-bold mb-1">Время прохождения (живое)</p>
-                <p id="live-clock" class="text-xl font-mono font-bold text-green-400">00:00:00</p>
-            </div>
-            <p class="text-xs text-red-500 font-bold">⚠️ Внимание администратора: скриншоты не принимаются, часы должны идти в реальном времени!</p>
+        <!-- Подвал -->
+        <div class="mt-6 text-center text-[10px] text-blue-200/60 tracking-widest select-none pb-4">
+            © 2026 НАЦИОНАЛЬНЫЙ ЦЕНТР РОССИЯ
         </div>
     </div>
 
     <script>
-        // БАЗА ДАННЫХ КВЕСТА ИЗ СЦЕНАРИЯ
+        // ДАННЫЕ ИЗ СЦЕНАРИЯ "Квест с QR кодами по НЦ.pdf"
         const questData = {
             "welcome": {
                 step: 1,
@@ -137,15 +191,12 @@
             }
         };
 
-        // Логика работы квеста
         const urlParams = new URLSearchParams(window.location.search);
-        const currentLoc = urlParams.get('loc'); // Получаем токен локации из QR-кода
+        const currentLoc = urlParams.get('loc');
 
-        // Инициализация состояний в LocalStorage
         let userStep = parseInt(localStorage.getItem('quest_step')) || 0;
         let userUID = localStorage.getItem('quest_uid') || "";
 
-        // Проверка режима инкогнито
         try {
             localStorage.setItem('test', '1');
             localStorage.removeItem('test');
@@ -159,16 +210,13 @@
             });
         }
 
-        // Главный контроллер распределения экранов
         function initQuest() {
-            // Если перешли без параметров локации
             if (!currentLoc || !questData[currentLoc]) {
                 if (userStep === 0) {
-                    showError("Сканируй самый первый QR-код на стойке администратора, чтобы начать квест!");
+                    showError("Пожалуйста, отсканируйте стартовый QR-код на стойке администратора.");
                 } else if (userStep > 9) {
                     showFinalScreen();
                 } else {
-                    // Ищем токен по текущему шагу пользователя, чтобы вернуть его на место прерывания
                     const token = Object.keys(questData).find(key => questData[key].step === userStep);
                     showHintScreen(questData[token].hint);
                 }
@@ -177,31 +225,25 @@
 
             const targetData = questData[currentLoc];
 
-            // ЗАЩИТА ОТ ЧИТЕРСТВА: проверка последовательности шагов
             if (targetData.step === 1 && userStep === 0) {
-                // Первая локация, квест еще не начат
                 hideAllScreens();
                 document.getElementById('screen-welcome').classList.remove('hidden');
             } else if (targetData.step > userStep + 1) {
-                // Ребенок перепрыгнул через шаги
-                showError("Кажется, ты пропустил какую-то локацию! Вернись назад и разгадай предыдущую загадку.");
+                showError("Ошибка последовательности! Вы пропустили одну из локаций на маршруте.");
             } else if (targetData.step <= userStep) {
-                // Если этот шаг уже был успешно решен ранее
                 if (targetData.step === 9 || userStep >= 9) {
                     showFinalScreen();
                 } else {
                     showHintScreen(targetData.hint);
                 }
             } else if (targetData.step === userStep + 1) {
-                // Идеально: текущий правильный шаг квеста
                 showQuestionScreen(currentLoc);
             }
         }
 
         function startQuest() {
             userStep = 1;
-            // Генерация уникального ID участника (Например: RC-5421)
-            userUID = "RC-" + Math.floor(1000 + Math.random() * 9000);
+            userUID = "KRAS-" + Math.floor(1000 + Math.random() * 9000);
             localStorage.setItem('quest_step', userStep);
             localStorage.setItem('quest_uid', userUID);
             showQuestionScreen("welcome");
@@ -212,7 +254,7 @@
             const data = questData[locKey];
             
             document.getElementById('quest-id-display').innerText = "ID: " + userUID;
-            document.getElementById('step-counter').innerText = `Шаг ${data.step}/9`;
+            document.getElementById('step-counter').innerText = `ШАГ ${data.step}/9`;
             document.getElementById('question-text').innerText = data.question;
             document.getElementById('wrong-answer-msg').classList.add('hidden');
 
@@ -221,7 +263,7 @@
 
             data.options.forEach(option => {
                 const btn = document.createElement('button');
-                btn.className = "w-full text-left bg-gray-50 hover:bg-red-50 border border-gray-200 hover:border-red-300 text-gray-800 font-medium py-3 px-4 rounded-xl transition duration-150";
+                btn.className = "w-full text-left bg-slate-50 hover:bg-slate-100 border border-slate-200 active:border-blue-600 active:bg-blue-50 text-gray-800 font-semibold py-3 px-4 rounded-lg transition text-sm normal-case";
                 btn.innerText = option;
                 btn.onclick = () => checkAnswer(option, data.answer, data.hint);
                 container.appendChild(btn);
@@ -232,7 +274,6 @@
 
         function checkAnswer(selected, correct, hintText) {
             if (selected === correct) {
-                // Ответ верный. Перезаписываем шаг в памяти смартфона
                 const currentData = questData[currentLoc || "welcome"];
                 userStep = currentData.step;
                 localStorage.setItem('quest_step', userStep);
@@ -258,7 +299,6 @@
             document.getElementById('final-uid').innerText = userUID || localStorage.getItem('quest_uid');
             document.getElementById('screen-final').classList.remove('hidden');
             
-            // Запуск живых часов против обмана со скриншотами
             setInterval(() => {
                 const now = new Date();
                 document.getElementById('live-clock').innerText = now.toLocaleTimeString('ru-RU');
@@ -271,7 +311,6 @@
             document.getElementById('screen-error').classList.remove('hidden');
         }
 
-        // Запуск при загрузке страницы
         initQuest();
     </script>
 </body>
