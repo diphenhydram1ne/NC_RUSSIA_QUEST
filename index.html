@@ -226,10 +226,11 @@
             const targetData = questData[currentLoc];
 
             if (targetData.step === 1 && userStep === 0) {
-                hideAllScreens();
-                document.getElementById('screen-welcome').classList.remove('hidden');
-            } else if (targetData.step > userStep + 1) {
-                showError("Ошибка последовательности! Вы пропустили одну из локаций на маршруте.");
+    hideAllScreens();
+    document.getElementById('screen-welcome').classList.remove('hidden');
+} else if (targetData.step > userStep + 1) {
+    showError("Ошибка последовательности! Вы пропустили одну из локаций на маршруте. Вернитесь на стойку регистрации, чтобы начать квест.");
+}
             } else if (targetData.step <= userStep) {
                 if (targetData.step === 9 || userStep >= 9) {
                     showFinalScreen();
