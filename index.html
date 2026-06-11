@@ -6,17 +6,14 @@
     <title>Квест: Национальный центр Россия</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
-        /* Точные цвета из фирменной заставки */
         .bg-brand-gradient {
             background: linear-gradient(180deg, #0d3168 0%, #225691 50%, #2e6db3 100%);
         }
-        /* Стилизация шрифтов под макет */
         .font-brand-title {
             font-family: 'Montserrat', system-ui, -apple-system, sans-serif;
             text-transform: uppercase;
             letter-spacing: 0.05em;
         }
-        /* Векторный силуэт города на фоне (адаптивный) */
         .city-silhouette {
             position: fixed;
             bottom: 0;
@@ -38,30 +35,26 @@
 </head>
 <body class="bg-brand-gradient min-h-screen flex flex-col justify-between p-4 font-brand-title text-white">
 
-    <!-- Силуэт города на заднем плане -->
     <div class="city-silhouette"></div>
 
     <div class="content-wrapper w-full max-w-md mx-auto my-auto flex flex-col items-center">
         
-        <!-- Главный брендинг сверху (копия заставки) -->
         <div class="text-center mb-6 select-none">
             <div class="text-xs md:text-sm font-medium tracking-widest text-blue-200 opacity-90">НАЦИОНАЛЬНЫЙ ЦЕНТР</div>
             <div class="text-4xl md:text-5xl font-black tracking-tight my-1 drop-shadow-md">РОССИЯ</div>
             <div class="text-xs md:text-sm font-bold tracking-widest text-blue-100 border-t border-blue-400/30 pt-1 mt-1">КРАСНОЯРСКИЙ КРАЙ</div>
         </div>
 
-        <!-- Основная карточка квеста -->
         <div class="bg-white text-gray-900 rounded-lg shadow-2xl p-6 w-full border-t-4 border-red-600">
             
-            <!-- Предупреждение об инкогнито -->
             <div id="incognito-warning" class="hidden bg-amber-50 border-l-4 border-amber-500 p-3 mb-4 rounded text-xs text-amber-900 normal-case">
                 <strong>⚠️ Внимание!</strong> Выключите режим инкогнито, иначе прогресс квеста сотрется при закрытии браузера.
             </div>
 
-            <!-- Экран Ошибки (Читерство) -->
+            <!-- Экран Ошибки (Читерство / Нарушение порядка) -->
             <div id="screen-error" class="hidden text-center py-4 normal-case">
-                <div class="text-red-600 text-4xl font-bold mb-2">ДОСТУП ОГРАНИЧЕН</div>
-                <p id="error-message" class="text-gray-600 text-sm font-medium">Вы пропустили предыдущие локации квеста. Пожалуйста, двигайтесь строго по порядку шагов!</p>
+                <div class="text-red-600 text-xl font-black mb-3 tracking-wide uppercase">Доступ ограничен</div>
+                <p id="error-message" class="text-gray-700 text-sm font-medium leading-relaxed">Ты пропустил предыдущие локации квеста. Пожалуйста, двигайтесь строго по порядку шагов!</p>
             </div>
 
             <!-- Экран Приветствия (Шаг 1) -->
@@ -117,14 +110,12 @@
 
         </div>
 
-        <!-- Подвал -->
         <div class="mt-6 text-center text-[10px] text-blue-200/60 tracking-widest select-none pb-4">
             © 2026 НАЦИОНАЛЬНЫЙ ЦЕНТР РОССИЯ
         </div>
     </div>
 
     <script>
-        // ДАННЫЕ ИЗ СЦЕНАРИЯ "Квест с QR кодами по НЦ.pdf"
         const questData = {
             "welcome": {
                 step: 1,
@@ -226,11 +217,10 @@
             const targetData = questData[currentLoc];
 
             if (targetData.step === 1 && userStep === 0) {
-    hideAllScreens();
-    document.getElementById('screen-welcome').classList.remove('hidden');
-} else if (targetData.step > userStep + 1) {
-    showError("Ошибка последовательности! Вы пропустили одну из локаций на маршруте. Вернитесь на стойку регистрации, чтобы начать квест.");
-}
+                hideAllScreens();
+                document.getElementById('screen-welcome').classList.remove('hidden');
+            } else if (targetData.step > userStep + 1) {
+                showError("Ошибка последовательности! Вы пропустили одну из локаций на маршруте. Вернитесь на стойку регистрации, чтобы начать квест.");
             } else if (targetData.step <= userStep) {
                 if (targetData.step === 9 || userStep >= 9) {
                     showFinalScreen();
