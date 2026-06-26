@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Квест: Национальный центр Россия</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- Используем стабильную v3 для максимальной совместимости с мобильными браузерами -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .bg-brand-gradient {
             background: linear-gradient(180deg, #0d3168 0%, #225691 50%, #2e6db3 100%);
@@ -45,10 +46,10 @@
             <div class="text-xs md:text-sm font-bold tracking-widest text-blue-100 border-t border-blue-400/30 pt-1 mt-1">КРАСНОЯРСКИЙ КРАЙ</div>
         </div>
 
-        <div class="bg-white text-gray-900 rounded-lg shadow-2xl p-6 w-full border-t-4 border-red-600">
+        <div class="bg-white text-gray-900 rounded-lg shadow-2xl p-6 w-full border-t-4 border-red-600 min-h-[150px]">
             
             <div id="incognito-warning" class="hidden bg-amber-50 border-l-4 border-amber-500 p-3 mb-4 rounded text-xs text-amber-900 normal-case">
-                <strong>⚠️  Внимание!</strong> Выключите режим инкогнито, иначе прогресс квеста сотрется при закрытии браузера.
+                <strong>⚠️  Внимание!</strong> Ваш браузер блокирует сохранение. Не закрывайте эту вкладку до конца квеста, иначе прогресс обнулится.
             </div>
 
             <div id="screen-error" class="hidden text-center py-4 normal-case">
@@ -66,7 +67,7 @@
             </div>
 
             <div id="screen-question" class="hidden normal-case">
-11:54
+12:01
 
 
 <div class="mb-4 flex justify-between items-center bg-gray-100 px-3 py-2 rounded text-xs font-bold tracking-wider text-gray-500">
@@ -130,7 +131,7 @@
             },
             "exhibition": {
                 step: 3,
-11:54
+12:01
 question: "Как называется село где расположен музей-заповедник, связанный с периодом сибирской ссылки В. И. Ленина?",
                 options: ["Овсянка", "Шушенское", "Тасеево"],
                 answer: "Шушенское",
@@ -183,7 +184,7 @@ question: "Как называется село где расположен му
                 question: "В какое море впадает Енисей?",
                 options: ["Карское море", "море Лаптевых", "Чукотское море"],
                 answer: "Карское море",
-11:54
+12:01
 hint: "Чтобы найти следующий QR код отгадай загадку. В ней зашифровано следующее место!\nЗдесь кружева вологодские нежно лежат,\nХрустальный блеск на полках в ряд.\nЯнтарь тёплый, солнечный — в витрине горит,\nВсё — родное, российское — сердце говорит.\nУнивермаг - это место зовется,\nА QR код у продавца найдется."
             },
             "shop": {
@@ -205,12 +206,32 @@ hint: "Чтобы найти следующий QR код отгадай заг�
         const urlParams = new URLSearchParams(window.location.search);
         const currentLoc = urlParams.get('loc');
 
-        let userStep = parseInt(localStorage.getItem('quest_step')) || 0;
-        let userUID = localStorage.getItem('quest_uid') || "";
+        // Безопасная обертка для памяти (спасает от краша во встроенных браузерах)
+        const memoryStorage = {};
+        const safeStorage = {
+            getItem: function(key) {
+                try {
+                    return window.localStorage.getItem(key) || memoryStorage[key] || null;
+                } catch(e) {
+                    return memoryStorage[key] || null;
+                }
+            },
+            setItem: function(key, val) {
+                try {
+                    window.localStorage.setItem(key, val);
+                } catch(e) {
+                    memoryStorage[key] = val;
+                }
+            }
+        };
 
+        let userStep = parseInt(safeStorage.getItem('quest_step')) || 0;
+        let userUID = safeStorage.getItem('quest_uid') || "";
+
+        // Проверка доступности хранилища для вывода предупреждения
         try {
-            localStorage.setItem('test', '1');
-            localStorage.removeItem('test');
+            window.localStorage.setItem('test', '1');
+            window.localStorage.removeItem('test');
         } catch (e) {
             document.getElementById('incognito-warning').classList.remove('hidden');
         }
@@ -229,7 +250,11 @@ hint: "Чтобы найти следующий QR код отгадай заг�
                     showFinalScreen();
                 } else {
                     const token = Object.keys(questData).find(key => questData[key].step === userStep);
-                    showHintScreen(questData[token].hint);
+                    if (token) {
+                        showHintScreen(questData[token].hint);
+                    } else {
+                        showError("Ошибка восстановления сессии. Пожалуйста, начните заново.");
+                    }
                 }
                 return;
             }
@@ -240,8 +265,9 @@ hint: "Чтобы найти следующий QR код отгадай заг�
                 hideAllScreens();
                 document.getElementById('screen-welcome').classList.remove('hidden');
             } else if (targetData.step > userStep + 1) {
-                showError("Ошибка последовательности! Вы пропустили одну из локаций на маршруте. Вернитесь на стойку регистрации, чтобы начать квест.");
-            } else if (targetData.step <= userStep) {
+                showError("Ошибка последовательности! Вы пропустили одну из локаций на маршруте. Вернитесь на предыдущую точку.");
+12:01
+} else if (targetData.step <= userStep) {
                 if (targetData.step === 12 || userStep >= 12) {
                     showFinalScreen();
                 } else {
@@ -255,8 +281,8 @@ hint: "Чтобы найти следующий QR код отгадай заг�
         function startQuest() {
             userStep = 1;
             userUID = "KRAS-" + Math.floor(1000 + Math.random() * 9000);
-            localStorage.setItem('quest_step', userStep);
-            localStorage.setItem('quest_uid', userUID);
+            safeStorage.setItem('quest_step', userStep);
+            safeStorage.setItem('quest_uid', userUID);
             showQuestionScreen("welcome");
         }
 
@@ -265,8 +291,7 @@ hint: "Чтобы найти следующий QR код отгадай заг�
             const data = questData[locKey];
             
             document.getElementById('quest-id-display').innerText = "ID: " + userUID;
-11:54
-document.getElementById('step-counter').innerText = `ШАГ ${data.step}/12`;
+            document.getElementById('step-counter').innerText = `ШАГ ${data.step}/12`;
             document.getElementById('question-text').innerText = data.question;
             document.getElementById('wrong-answer-msg').classList.add('hidden');
 
@@ -288,7 +313,7 @@ document.getElementById('step-counter').innerText = `ШАГ ${data.step}/12`;
             if (selected === correct) {
                 const currentData = questData[currentLoc || "welcome"];
                 userStep = currentData.step;
-                localStorage.setItem('quest_step', userStep);
+                safeStorage.setItem('quest_step', userStep);
 
                 if (userStep === 12) {
                     showFinalScreen();
@@ -308,7 +333,7 @@ document.getElementById('step-counter').innerText = `ШАГ ${data.step}/12`;
 
         function showFinalScreen() {
             hideAllScreens();
-            document.getElementById('final-uid').innerText = userUID || localStorage.getItem('quest_uid');
+            document.getElementById('final-uid').innerText = userUID || safeStorage.getItem('quest_uid');
             document.getElementById('screen-final').classList.remove('hidden');
             
             setInterval(() => {
